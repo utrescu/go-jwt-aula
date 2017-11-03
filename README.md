@@ -189,7 +189,7 @@ A partir d'aquest moment es pot navegar per les adreces protegides sense problem
 ![aules](README/aules.png)
 ![aula309](README/aula309.png)
 
-Es pot tancar la sessió accedint a la URL /logout
+Es pot tancar la sessió accedint a la URL http://localhost:3000/logout
 
 I si tornem a intentar anar a pàgines protegides donarà error:
 
