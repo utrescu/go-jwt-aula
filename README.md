@@ -52,9 +52,7 @@ Faig servir dues formes d'autenticació:
 * Enviant una capsalera 'Authorization'
 * Fent servir una cookie
 
-WARNING: Cap dels sistemes és segur si no es fa servir una connexió HTTPS. 
-
-En el cas de les Cookies s'han de restringir perquè no es puguin llegir des de Javascript
+> WARNING: Cap dels sistemes és segur si no es fa servir una connexió HTTPS. En el cas de les Cookies s'han de restringir perquè no es puguin llegir des de Javascript
 
 Exemple d'ús amb un Authorization Token
 --------------------------------------------
