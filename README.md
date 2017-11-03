@@ -2,11 +2,11 @@ Proves per generar un servei REST que  permeti fer servir JWT (JSON Web tokens) 
 
 > L'he intentat dividir en fitxers per fer-lo més semblant a com ho faria en Java (no m'acaba d'agradar el resultat)
 
-Faig servir diferents parts de [Gorila](http://www.gorillatoolkit.org/). El mux i els handlers (coneguts com interceptors en Java)
+Faig servir diferents parts del framework web [Gorila](http://www.gorillatoolkit.org/): El mux, el context i els handlers (semblants als interceptors de Java)
 
     $ go get github.com/gorilla/context
-	$ go get github.com/gorilla/handlers
-	$ go get github.com/gorilla/mux
+    $ go get github.com/gorilla/handlers
+    $ go get github.com/gorilla/mux
 
 La implementació de JWT: [jwt-go](https://github.com/dgrijalva/jwt-go)
 
@@ -20,12 +20,12 @@ Després només fa falta iniciar el programa:
 
     $ go run *.go
 
-També es pot aconseguir un binari nadiu compilant-lo (en Linux l'executable generat agafa el primer que troba en la llista)
+També es pot aconseguir un binari nadiu compilant-lo (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
 
     $ go build *.go
     $ ./aula
 
-Amb el navegador a http://localhost:3000 s'accedeix a la pàgina inicial
+Amb el navegador a http://localhost:3000 s'accedeix a la pàgina inicial (però la idea no és fer una aplicació web sinó una API REST)
 
 Implementació
 -------------------
@@ -34,12 +34,12 @@ La base del programa és una interfície REST que retorna els resultats en forma
 
 Per la interfície REST he definit diferents rutes en el programa (però no n'hi ha cap que faci res d'interessant, només són l'esboç d'una idea del que vull implementar en el futur)
 
-| URL                   | Mètode  |  Funció                                |
-|-----------------------|---------|----------------------------------------|
+| URL                   | Mètode  |  Funció                                                  |
+|-----------------------|---------|----------------------------------------------------------|
 | /login                | POST    | S'hi envia l'usuari i la contrasenya en el body JSON. Retorna el token a fer servir |
-| /aula/list            | GET     | Llista les aules (necessita el token o donarà error)    |
-| /aula/{numero}/status | GET     | Llista les màquines en marxa (necessita el token)       |
-| /aula/{numero}/stop   | POST    | Encara no fa res ... (necessita el token o donarà error)  |
+| /aula/list            | GET     | Llista les aules (necessita el token o donarà error)     |
+| /aula/{numero}/status | GET     | Llista les màquines en marxa (necessita el token)        |
+| /aula/{numero}/stop   | POST    | Encara no fa res ... (necessita el token o donarà error) |
 
 Un valor important i que s'hauria de mantenir en secret és la clau de xifrat que es fa servir per generar els tokens:
 
