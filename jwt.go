@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -20,65 +19,82 @@ type TokenData struct {
 
 // GetTokenHandler Genera un JWT per l'usuari rebut
 // ------------------------------------------------------------------------
-func GetTokenHandler(w http.ResponseWriter, req *http.Request) {
-	var user User
+func GetTokenHandler(w http.ResponseWriter, user User) {
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewDecoder(req.Body).Decode(&user); err == io.EOF {
-		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
-	} else if err != nil {
-		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
-	} else if !user.hasValues() {
-		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
-	} else {
-		expireToken := time.Now().Add(time.Hour * 1).Unix()
-		expireCookie := time.Now().Add(time.Hour * 1)
-		claims := TokenData{user.Username,
-			jwt.StandardClaims{
-				ExpiresAt: expireToken,
-				Issuer:    "localhost:3000",
-			},
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, error := token.SignedString(clauDeSignat)
-		if error != nil {
-			fmt.Println(error)
-		}
 
-		cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
-		http.SetCookie(w, &cookie)
-
-		json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
+	expireToken := time.Now().Add(time.Hour * 1).Unix()
+	expireCookie := time.Now().Add(time.Hour * 1)
+	claims := TokenData{user.Username,
+		jwt.StandardClaims{
+			ExpiresAt: expireToken,
+			Issuer:    "localhost:3000",
+		},
 	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, error := token.SignedString(clauDeSignat)
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
+	http.SetCookie(w, &cookie)
+
+	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
+
 }
 
 // ValidateToken és un middleware que comprova que el token és correcte
+//
+// Modificat per poder fer servir Cookies a més de que s'envïi l'autenticació
+// a més de la versió original en el Header...
+//
+//  Recomanació de: https://stormpath.com/blog/build-secure-user-interfaces-using-jwts
 // ------------------------------------------------------------------------
 func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		var tokenRebut string
+
 		w.Header().Set("Content-Type", "application/json")
-		authorizationHeader := req.Header.Get("authorization")
-		if authorizationHeader != "" {
-			bearerToken := strings.Split(authorizationHeader, " ")
-			if len(bearerToken) == 2 {
-				token, error := jwt.Parse(bearerToken[1], func(token *jwt.Token) (interface{}, error) {
-					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-						return nil, fmt.Errorf("There was an error")
-					}
-					return clauDeSignat, nil
-				})
-				if error != nil {
-					json.NewEncoder(w).Encode(Exception{Message: error.Error()})
-					return
-				}
-				if token.Valid {
-					context.Set(req, "decoded", token.Claims)
-					next(w, req)
-				} else {
-					json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
-				}
+
+		// Comprovar si hi ha una Cookie 'Auth'
+		cookie, err := req.Cookie("Auth")
+		if err != nil {
+			// Si no hi ha Cookie, mirem les capsaleres
+			authorizationHeader := req.Header.Get("authorization")
+			if authorizationHeader == "" {
+				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+				return
 			}
+			bearerToken := strings.Split(authorizationHeader, " ")
+			if len(bearerToken) != 2 {
+				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+				return
+			}
+			tokenRebut = bearerToken[1]
+
 		} else {
-			json.NewEncoder(w).Encode(Exception{Message: "An authorization header is required"})
+			tokenRebut = cookie.Value
 		}
+
+		// token, err := jwt.ParseWithClaims(tokenRebut, &TokenData{}, func(token *jwt.Token) (interface{}, error) {
+		token, error := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error")
+			}
+			return clauDeSignat, nil
+		})
+		if error != nil {
+			json.NewEncoder(w).Encode(Exception{Message: error.Error()})
+			return
+		}
+		if token.Valid {
+			context.Set(req, "decoded", token.Claims)
+			next(w, req)
+		} else {
+			json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
+		}
+
 	})
 }
