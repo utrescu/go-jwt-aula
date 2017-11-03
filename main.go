@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -55,6 +56,8 @@ func main() {
 // - "form-urlencoded" : S'ha de convertir
 // ------------------------------------------------------------------------
 var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	// Sempre generem contingut JSON
+	w.Header().Set("Content-Type", "application/json")
 
 	var user User
 
@@ -86,14 +89,24 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	GetTokenHandler(w, user)
+	tokenString, err := GetTokenHandler(user)
+	if err != nil {
+		json.NewEncoder(w).Encode(Exception{Message: "Error generating token"})
+		fmt.Println(err)
+		return
+	}
+
+	// Generar el token i la resposta
+	expireCookie := time.Now().Add(time.Hour * 1)
+	cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
+	http.SetCookie(w, &cookie)
+	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
 })
 
 // Logout es fa servir per desconnectar els clients web
 // ------------------------------------------------------------------------
-
 func Logout(res http.ResponseWriter, req *http.Request) {
-	deleteCookie := http.Cookie{Name: "Auth", Value: "none", ExpiresAt: time.Now()}
+	deleteCookie := http.Cookie{Name: "Auth", Value: "none", Expires: time.Now()}
 	http.SetCookie(res, &deleteCookie)
 	return
 }

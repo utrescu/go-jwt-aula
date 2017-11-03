@@ -47,8 +47,17 @@ Un valor important i que s'hauria de mantenir en secret és la clau de xifrat qu
 
 He preparat una estructura de directoris per desplegar la part web */views/* per l'HTML i */static/* pels recursos.
 
-Exemple d'ús
-----------------------------
+Faig servir dues formes d'autenticació: 
+
+* Enviant una capsalera 'Authorization'
+* Fent servir una cookie
+
+WARNING: Cap dels sistemes és segur si no es fa servir una connexió HTTPS. 
+
+En el cas de les Cookies s'han de restringir perquè no es puguin llegir des de Javascript
+
+Exemple d'ús amb un Authorization Token
+--------------------------------------------
 
 En les proves faré servir **httpie**
 
@@ -164,3 +173,26 @@ Que donarà:
             "i309-03e"
         ]
     }
+
+Exemple d'ús amb Cookies
+--------------------------------------------
+Si es fan servir les Cookies es pot treballar des del navegador. Primer s'accedeix a la pantalla de login:
+
+    http://localhost:3000
+
+![login](README/login.png)
+
+Que retornarà el token (innecessari perquè també està en una cookie)
+
+![login token](README/login2.png)
+
+A partir d'aquest moment es pot navegar per les adreces protegides sense problemes (el token està en la cookie)
+
+![aules](README/aules.png)
+![aula309](README/aula309.png)
+
+Es pot tancar la sessió accedint a la URL /logout
+
+I si tornem a intentar anar a pàgines protegides donarà error:
+
+![Error](README/error.png)

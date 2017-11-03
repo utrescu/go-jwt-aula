@@ -19,12 +19,10 @@ type TokenData struct {
 
 // GetTokenHandler Genera un JWT per l'usuari rebut
 // ------------------------------------------------------------------------
-func GetTokenHandler(w http.ResponseWriter, user User) {
-
-	w.Header().Set("Content-Type", "application/json")
+func GetTokenHandler(user User) (string, error) {
 
 	expireToken := time.Now().Add(time.Hour * 1).Unix()
-	expireCookie := time.Now().Add(time.Hour * 1)
+
 	claims := TokenData{user.Username,
 		jwt.StandardClaims{
 			ExpiresAt: expireToken,
@@ -32,16 +30,7 @@ func GetTokenHandler(w http.ResponseWriter, user User) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, error := token.SignedString(clauDeSignat)
-	if error != nil {
-		fmt.Println(error)
-	}
-
-	cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
-	http.SetCookie(w, &cookie)
-
-	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
-
+	return token.SignedString(clauDeSignat)
 }
 
 // ValidateToken és un middleware que comprova que el token és correcte
