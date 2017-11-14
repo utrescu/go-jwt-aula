@@ -1,0 +1,13 @@
+[aules]
+
+  [aules.309]
+  rang = "192.168.9.0/24"
+  name = "Aula 309"
+
+  [aules.310]
+  rang = "192.168.10.0/24"
+  name = "Aula 310"
+
+  [aules.314]
+  rang = "192.168.16.0/24"
+  name = "Aula 314"
