@@ -5,8 +5,8 @@ Proves per generar un servei REST que  permeti fer servir JWT (JSON Web tokens) 
 
 > L'he intentat dividir en fitxers per fer-lo més semblant a com ho faria en Java (no m'acaba d'agradar el resultat)
 
-Requeriments
--------------------
+Generació del programa
+------------------------
 
 Faig servir diferents parts del framework web [Gorila](http://www.gorillatoolkit.org/): El mux, el context i els handlers (semblants als interceptors de Java)
 
@@ -30,34 +30,51 @@ L'escanneig de la xarxa es fa amb la llibreria `listIP`:
 
     go get github.com/utrescu/listIP
 
-Iniciar el programa
------------------------------
+### Iniciar o compilar el programa
 
 Després només fa falta iniciar el programa:
 
     go run *.go
 
-També es pot aconseguir un binari nadiu compilant-lo (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
+També es pot aconseguir un binari nadiu del sistema en que es compili (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
 
-    $ go build *.go
-    $ ./aula
+    go build *.go
+    ./aula
 
-Amb el navegador a [http://localhost:3000](http://localhost:3000) s'accedeix a la pàgina inicial (però la idea no és fer una aplicació web sinó una API REST)
+En Go es poden generar executables de qualsevol plataforma. Per exemple podem generar un executable de Windows des de Linux:
 
-En el directori del programa cal tenir un fitxer amb la configuració de les aules a emmagatzemar en el sistema en format TOML. Per exemple aquesta seria la configuració de dues aules 309 i 310:
+    GOOS=windows GOARCH=amd64 go build *.go
+
+(pot ser que tardi una mica més perquè ha d'aconseguir els binaris Windows)
+
+### Accés al servei
+
+Es pot anar amb el navegador a [http://localhost:3000](http://localhost:3000) per veure el servei en marxa. Inicialment s'accedeix a un formulari de login que serveix per iniciar-se en el sistema (però la idea no és fer una aplicació web sinó una API REST)
+
+### Fitxer de configuració
+
+El programa carrega les dades de les classes d'un fitxer en format TOML
+
+Per tant cal tenir un fitxer amb la configuració de les aules en el mateix directori del binari.
+
+Per exemple aquesta seria la configuració de dues aules 309 i 310:
 
     [aules]
 
       [aules.309]
       rang = "192.168.9.0/24"
       name = "Aula 309"
+      port = 22
 
       [aules.310]
       rang = "192.168.10.0/24"
       name = "Aula 310"
+      port = 22
 
-Implementació
--------------------
+Aquí detecta els sistemes amb el port 22 obert (que és el que jo necessitava per control·lar les classes) però es pot posar un port diferent per cada classe
+
+Descripció del servei
+------------------------
 
 La base del programa és una interfície REST que retorna els resultats en format JSON.
 
@@ -201,6 +218,7 @@ Que retornarà el token (innecessari perquè també està en una cookie)
 A partir d'aquest moment es pot navegar per les adreces protegides sense problemes (el token està en la cookie)
 
 ![aules](README/aules.png)
+
 ![aula309](README/aula309.png)
 
 Es pot tancar la sessió accedint a la URL [http://localhost:3000/logout](http://localhost:3000/logout)

@@ -20,6 +20,7 @@ type aules struct {
 type AulaInfo struct {
 	Rang string
 	Name string
+	Port int
 }
 
 func (a *aules) loadConfig(fitxer string) error {
@@ -45,7 +46,7 @@ func (a *aules) listAules() []string {
 func (a *AulaInfo) cercaMaquines(numAula string) (AulaResult, error) {
 	var resultat AulaResult
 	resultat.Aula = numAula
-	enmarxa, _, err := listIP.Check([]string{a.Rang}, 22, 64, "100ms")
+	enmarxa, _, err := listIP.Check([]string{a.Rang}, a.Port, 64, "100ms")
 	resultat.EnMarxa = enmarxa
 	return resultat, err
 }

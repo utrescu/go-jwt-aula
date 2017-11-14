@@ -3,11 +3,19 @@
   [aules.309]
   rang = "192.168.9.0/24"
   name = "Aula 309"
+  port = 22
 
   [aules.310]
   rang = "192.168.10.0/24"
   name = "Aula 310"
+  port = 22
 
   [aules.314]
   rang = "192.168.16.0/24"
   name = "Aula 314"
+  port = 22
+
+  [aules.88]
+  rang = "192.168.88.0/24"
+  name = "Aula 88"
+  port = 80
