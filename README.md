@@ -1,31 +1,60 @@
+Llistar ordinadors en marxa de les aules
+==============================================
+
 Proves per generar un servei REST que  permeti fer servir JWT (JSON Web tokens) des de GO (golang).
 
 > L'he intentat dividir en fitxers per fer-lo més semblant a com ho faria en Java (no m'acaba d'agradar el resultat)
 
+Requeriments
+-------------------
+
 Faig servir diferents parts del framework web [Gorila](http://www.gorillatoolkit.org/): El mux, el context i els handlers (semblants als interceptors de Java)
 
-    $ go get github.com/gorilla/context
-    $ go get github.com/gorilla/handlers
-    $ go get github.com/gorilla/mux
+    go get github.com/gorilla/context
+    go get github.com/gorilla/handlers
+    go get github.com/gorilla/mux
 
 La implementació de JWT: [jwt-go](https://github.com/dgrijalva/jwt-go)
 
-    $ go get github.com/dgrijalva/jwt-go
+    go get github.com/dgrijalva/jwt-go
 
 I una llibreria per convertir mapes a structs anomenada *mapstructure* (en realitat només em fa el codi més senzill):
 
-    $ go get github.com/mitchellh/mapstructure
+    go get github.com/mitchellh/mapstructure
+
+La configuració està en TOML i per tant fa falta la llibreria
+
+    go get github.com/naoina/toml
+
+L'escanneig de la xarxa es fa amb la llibreria `listIP`:
+
+    go get github.com/utrescu/listIP
+
+Iniciar el programa
+-----------------------------
 
 Després només fa falta iniciar el programa:
 
-    $ go run *.go
+    go run *.go
 
 També es pot aconseguir un binari nadiu compilant-lo (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
 
     $ go build *.go
     $ ./aula
 
-Amb el navegador a http://localhost:3000 s'accedeix a la pàgina inicial (però la idea no és fer una aplicació web sinó una API REST)
+Amb el navegador a [http://localhost:3000](http://localhost:3000) s'accedeix a la pàgina inicial (però la idea no és fer una aplicació web sinó una API REST)
+
+En el directori del programa cal tenir un fitxer amb la configuració de les aules a emmagatzemar en el sistema en format TOML. Per exemple aquesta seria la configuració de dues aules 309 i 310:
+
+    [aules]
+
+      [aules.309]
+      rang = "192.168.9.0/24"
+      name = "Aula 309"
+
+      [aules.310]
+      rang = "192.168.10.0/24"
+      name = "Aula 310"
 
 Implementació
 -------------------
@@ -47,7 +76,7 @@ Un valor important i que s'hauria de mantenir en secret és la clau de xifrat qu
 
 He preparat una estructura de directoris per desplegar la part web */views/* per l'HTML i */static/* pels recursos.
 
-Faig servir dues formes d'autenticació: 
+Faig servir dues formes d'autenticació:
 
 * Enviant una capsalera 'Authorization'
 * Fent servir una cookie
@@ -59,7 +88,7 @@ Exemple d'ús amb un Authorization Token
 
 En les proves faré servir **httpie**
 
-    $ pip install httpie
+    pip install httpie
 
 ### Obtenir el token
 
@@ -110,23 +139,7 @@ Que donarà aquesta resposta:
     Content-Type: application/json
     Date: Wed, 01 Nov 2017 19:47:30 GMT
 
-    [
-        {
-            "Nom": "309",
-            "Numero": 309,
-            "Xarxa": "192.168.9.0/24"
-        },
-        {
-            "Nom": "310",
-            "Numero": 310,
-            "Xarxa": "192.168.10.0/24"
-        },
-        {
-            "Nom": "314",
-            "Numero": 314,
-            "Xarxa": "192.168.9.16/24"
-        }
-    ]
+    ["309","310","314"]
 
 El Token és vàlid durant una hora. Per tant si repetim la petició després d'aquest temps el resultat serà que ja no podem identificar-nos:
 
@@ -150,7 +163,7 @@ En cas de que es faci la petició sense token també rebrem un error:
         "message": "An authorization header is required"
     }
 
-### Demanar pels PC d'una classe 
+### Demanar pels PC en marxa d'una classe
 
 També podem demanar per quins són els PC en marxa d'una classe. Per exemple la 309:
 
@@ -174,6 +187,7 @@ Que donarà:
 
 Exemple d'ús amb Cookies
 --------------------------------------------
+
 Si es fan servir les Cookies es pot treballar des del navegador. Primer s'accedeix a la pantalla de login:
 
     http://localhost:3000
@@ -189,7 +203,7 @@ A partir d'aquest moment es pot navegar per les adreces protegides sense problem
 ![aules](README/aules.png)
 ![aula309](README/aula309.png)
 
-Es pot tancar la sessió accedint a la URL http://localhost:3000/logout
+Es pot tancar la sessió accedint a la URL [http://localhost:3000/logout](http://localhost:3000/logout)
 
 I si tornem a intentar anar a pàgines protegides donarà error:
 
