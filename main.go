@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"html/template"
@@ -29,6 +30,9 @@ type Exception struct {
 // Llista amb les aules del sistema
 var config aules
 
+// Base de dades
+var db *sql.DB
+
 // clauDeSignat és la clau que fem servir per signar el Token
 var clauDeSignat = []byte("SiLaLletFosXocolataNoCaldriaColacao")
 
@@ -37,10 +41,17 @@ func main() {
 	router := mux.NewRouter()
 
 	// Carregar la configuració
-	err := config.loadConfig("aules.toml")
+	err := config.loadConfig("config/aules.toml")
 	if err != nil {
 		panic("aules.toml " + err.Error())
 	}
+
+	// Obrir la base de dades
+	db, err = InitDB("config/usuaris.db")
+	if err != nil {
+		panic("Base de dades no trobada")
+	}
+	defer db.Close()
 
 	//	router.Handle("/", http.FileServer(http.Dir("./views/")))
 	//	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
