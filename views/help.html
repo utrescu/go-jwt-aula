@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Aula oberta</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+    crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+    crossorigin="anonymous"></script>
+
+  <script type="text/javascript" src="node_modules/auth0-js/build/auth0.js"></script>
+
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>Mètodes de l'API</h1>
+    <hr>
+    <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">URL</th>
+                <th scope="col">Mètode</th>
+                <th scope="col">Funció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">/login</th>
+                <td>POST</td>
+                <td>S'hi envia l'usuari i la contrasenya en el body JSON. Retorna el token JWT a fer servir</td>
+              </tr>
+              <tr>
+                <th scope="row"><a href="/logout">/logout</a></th>
+                <td>GET</td>
+                <td>Elimina la cookie JWT</td>
+              </tr>
+              <tr>
+                <th scope="row"><a href="/aula/list">/aula/list</a></th>
+                <td>GET</td>
+                <td>Llista les aules del sistema (necessita el token o donarà error)</td>
+              </tr>
+              <tr>
+                  <th scope="row">/aula/{numero}/status</th>
+                  <td>GET</td>
+                  <td>Llista les màquines en marxa de l'aula 'número' (necessita el token o donarà error)
+                    <br>Ex. Aula 309 : <a href="/aula/309/status">/aula/309/status</a>
+                  </td>
+                </tr>
+                <tr>
+                    <th scope="row">/aula/{numero}/stop</th>
+                    <td>POST</td>
+                    <td>Encara no fa res... (necessita el token o donarà error)</td>
+                  </tr>
+            </tbody>
+          </table>
+  </div>
+
+</body>
+
+</html>

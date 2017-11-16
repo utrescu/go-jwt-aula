@@ -87,3 +87,20 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 
 	})
 }
+
+func correctCookie(req *http.Request) bool {
+
+	if cookie, err := req.Cookie("Auth"); err == nil {
+		tokenRebut := cookie.Value
+		token, err := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("There was an error")
+			}
+			return clauDeSignat, nil
+		})
+		if err == nil && token.Valid {
+			return true
+		}
+	}
+	return false
+}

@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -37,27 +39,60 @@ func main() {
 	// Carregar la configuració
 	err := config.loadConfig("aules.toml")
 	if err != nil {
-		panic("No s'ha pogut carregar la configuració: aula.toml")
+		panic("aules.toml " + err.Error())
 	}
 
-	// A l'arrel simplement mostrem una pàgina estàtica
-	// i posem els seus recursos a 'static' (en realitat no fa cap falta)
-	router.Handle("/", http.FileServer(http.Dir("./views/")))
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	//	router.Handle("/", http.FileServer(http.Dir("./views/")))
+	//	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
+	// router.HandleFunc("/base", BaseHandler).Methods("GET")
 	// Login no està protegit per JWT
 	router.HandleFunc("/login", LoginHandler).Methods("POST")
 
 	// Protegim les URL amb el middleware ValidateToken(*) de jwt.go
+	router.HandleFunc("/login", ToLoginHandler).Methods("GET")
+	router.HandleFunc("/help", HelpHandler).Methods("GET")
 	router.HandleFunc("/aula/list", ValidateToken(ListAulesHandler)).Methods("GET")
 	router.HandleFunc("/aula/{num}/status", ValidateToken(ListClasse)).Methods("GET")
 	router.HandleFunc("/aula/{num}/stop", ValidateToken(NotImplemented)).Methods("POST")
 	router.HandleFunc("/logout", ValidateToken(Logout)).Methods("GET")
 
+	// A l'arrel simplement mostrem una pàgina estàtica
+	// i posem els seus recursos a 'static' (en realitat no fa cap falta)
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./views/")))
+	http.Handle("/", router)
+
 	// Port en el que escoltarà el servidor
 	http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, router))
 
 }
+
+// ToLoginHandler mostra la pàgina de login a menys que ja tingui la cookie
+// ------------------------------------------------------------------------
+var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+	if correctCookie(req) {
+		t, _ := template.ParseFiles("templates/base.html")
+		t.Execute(w, config.Aules)
+		// http.Redirect(w, req, "/base", http.StatusSeeOther)
+	} else {
+		log.Println("/login -> cookie no correcta")
+		http.ServeFile(w, req, "./views/login.html")
+	}
+})
+
+// HelpHandler mostra la pàgina d'error en format HTML
+// ------------------------------------------------------------------------
+var HelpHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./views/help.html")
+})
+
+// BaseHandler serveix com a template per defecte
+// ------------------------------------------------------------------------
+// var BaseHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+//	t, _ := template.ParseFiles("templates/base.html")
+//	t.Execute(w, config.Aules)
+// })
 
 // LoginHandler intenta capturar el contingut rebut i generar un token
 //
