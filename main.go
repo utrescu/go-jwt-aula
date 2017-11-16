@@ -53,9 +53,6 @@ func main() {
 	}
 	defer db.Close()
 
-	//	router.Handle("/", http.FileServer(http.Dir("./views/")))
-	//	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-
 	// router.HandleFunc("/base", BaseHandler).Methods("GET")
 	// Login no està protegit per JWT
 	router.HandleFunc("/login", LoginHandler).Methods("POST")
@@ -97,13 +94,6 @@ var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Requ
 var HelpHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./views/help.html")
 })
-
-// BaseHandler serveix com a template per defecte
-// ------------------------------------------------------------------------
-// var BaseHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-//	t, _ := template.ParseFiles("templates/base.html")
-//	t.Execute(w, config.Aules)
-// })
 
 // LoginHandler intenta capturar el contingut rebut i generar un token
 //
