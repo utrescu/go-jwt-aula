@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -47,7 +48,7 @@ func main() {
 	}
 
 	// Obrir la base de dades
-	db, err = InitDB("config/usuaris.db")
+	db, err = initDB("config/usuaris.db")
 	if err != nil {
 		panic("Base de dades no trobada")
 	}
@@ -133,7 +134,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 		return
 	}
 	// Error or no user ...
-	if err != nil || !user.hasValues() {
+	if err != nil || !user.hasValues() || || !user.hasCorrectPassword(db) {
 		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
 		return
 	}

@@ -17,14 +17,15 @@ func (u User) hasValues() bool {
 	return u.Username != "" && u.Password != ""
 }
 
-func (u User) isValid(db *sql.DB) bool {
+func (u User) hasCorrectPassword(db *sql.DB) bool {
 
-	if hashFromDatabase, err := recuperarDeBaseDeDades(db, u.Username); err != nil {
-		// Comparing the password with the hash
-		if err := bcrypt.CompareHashAndPassword(hashFromDatabase, []byte(u.Password)); err != nil {
-			return false
-		}
-		return true
+	hashFromDatabase, err := recuperaPasswordDeBaseDeDades(db, u.Username)
+	if err != nil {
+		return false
 	}
-	return false
+
+	if err := bcrypt.CompareHashAndPassword(hashFromDatabase, []byte(u.Password)); err != nil {
+		return false
+	}
+	return true
 }

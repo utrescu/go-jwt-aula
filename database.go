@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -15,25 +16,16 @@ func initDB(dbPath string) (*sql.DB, error) {
 	return db, nil
 }
 
-func recuperarDeBaseDeDades(db *sql.DB, user string) ([]byte, error) {
+func recuperaPasswordDeBaseDeDades(db *sql.DB, user string) ([]byte, error) {
 
-	sqlSearchUser := `
-		SELECT password
-		FROM users WHERE
-		username = ?`
+	row := db.QueryRow("SELECT password FROM users WHERE username=?", user)
+	// defer row.Close()
 
-	rows, err := db.Query(sqlSearchUser)
+	var result []byte
+	err := row.Scan(&result)
 	if err != nil {
+		log.Printf("DB: %s", err.Error())
 		return nil, err
 	}
-	defer rows.Close()
-	var result []byte
-	for rows.Next() {
-		err2 := rows.Scan(&result)
-		if err2 != nil {
-			return nil, err2
-		}
-	}
 	return result, nil
-
 }
