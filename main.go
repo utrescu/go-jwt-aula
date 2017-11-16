@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -134,7 +133,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 		return
 	}
 	// Error or no user ...
-	if err != nil || !user.hasValues() || || !user.hasCorrectPassword(db) {
+	if err != nil || !user.hasValues() || !user.hasCorrectPassword(db) {
 		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
 		return
 	}
