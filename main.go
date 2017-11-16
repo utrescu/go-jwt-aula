@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -104,31 +104,25 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 
 	var user User
+	var err error
 
 	switch contentType := req.Header.Get("Content-type"); contentType {
 	case "application/json":
-		if err := json.NewDecoder(req.Body).Decode(&user); err == io.EOF {
-			json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
-			return
-		} else if err != nil {
-			json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
-			return
-		}
+		err = json.NewDecoder(req.Body).Decode(&user)
+
 	case "application/x-www-form-urlencoded":
-		err := req.ParseForm()
+		err = req.ParseForm()
 		if err != nil {
-			json.NewEncoder(w).Encode(Exception{Message: "Form data incorrect"})
-			return
+			break
 		}
 		user.Username = req.FormValue("username")
 		user.Password = req.FormValue("password")
 	default:
-		json.NewEncoder(w).Encode(Exception{Message: "Content-Type " + contentType + "not implemented"})
+		err = errors.New("Content-Type error")
 		return
 	}
-
-	// Comprovar l'usuari
-	if !user.hasValues() {
+	// Error or no user ...
+	if err != nil || !user.hasValues() {
 		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
 		return
 	}
