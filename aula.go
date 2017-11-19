@@ -17,6 +17,11 @@ type aules struct {
 	Aules map[string]AulaInfo
 }
 
+// AulesResult retorna les aules
+type AulesResult struct {
+	Aules []string `json:"aules"`
+}
+
 type AulaInfo struct {
 	Rang string
 	Name string
@@ -32,7 +37,9 @@ func (a *aules) loadConfig(fitxer string) error {
 	return toml.NewDecoder(f).Decode(a)
 }
 
-func (a *aules) listAules() []string {
+func (a *aules) listAules() AulesResult {
+	var resultat AulesResult
+
 	keys := make([]string, len(a.Aules))
 
 	i := 0
@@ -40,7 +47,8 @@ func (a *aules) listAules() []string {
 		keys[i] = k
 		i++
 	}
-	return keys
+	resultat.Aules = keys
+	return resultat
 }
 
 func (a *AulaInfo) cercaMaquines(numAula string) (AulaResult, error) {

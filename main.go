@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -70,8 +69,17 @@ func main() {
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./views/")))
 	http.Handle("/", router)
 
+	// corsObj := handlers.AllowedOrigins([]string{"*"})
+
+	// headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	// originsOk := handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
+	// methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	// start server listen
+	// with error handling
+	// log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), handlers.CORS(originsOk, headersOk, methodsOk)(router)))
+
 	// Port en el que escoltarà el servidor
-	http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, router))
+	http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(router)))
 
 }
 
@@ -84,7 +92,6 @@ var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Requ
 		t.Execute(w, config.Aules)
 		// http.Redirect(w, req, "/base", http.StatusSeeOther)
 	} else {
-		log.Println("/login -> cookie no correcta")
 		http.ServeFile(w, req, "./views/login.html")
 	}
 })
@@ -124,12 +131,14 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 	}
 	// Error or no user ...
 	if err != nil || !user.hasValues() || !user.hasCorrectPassword(db) {
+		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
 		return
 	}
 
 	tokenString, err := GetTokenHandler(user)
 	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(Exception{Message: "Error generating token"})
 		return
 	}
@@ -153,6 +162,7 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 // en teoria s'eliminarà en producció
 // ------------------------------------------------------------------------
 var NotImplemented = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
 	json.NewEncoder(w).Encode(Exception{Message: "Not implemented"})
 })
 
@@ -180,12 +190,14 @@ var ListClasse = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request)
 
 		aula, err := infoAula.cercaMaquines(numAula)
 		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(Exception{Message: err.Error()})
 			return
 		}
 		resposta, _ := json.Marshal(aula)
 		w.Write([]byte(resposta))
 	} else {
+		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(Exception{Message: "Inexistent class"})
 	}
 })

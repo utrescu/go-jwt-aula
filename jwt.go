@@ -53,11 +53,13 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 			// Si no hi ha Cookie, mirem les capsaleres
 			authorizationHeader := req.Header.Get("authorization")
 			if authorizationHeader == "" {
+				w.WriteHeader(http.StatusUnauthorized)
 				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
 				return
 			}
 			bearerToken := strings.Split(authorizationHeader, " ")
 			if len(bearerToken) != 2 {
+				w.WriteHeader(http.StatusUnauthorized)
 				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
 				return
 			}
@@ -75,6 +77,7 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 			return clauDeSignat, nil
 		})
 		if error != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Exception{Message: error.Error()})
 			return
 		}
@@ -82,6 +85,7 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 			context.Set(req, "decoded", token.Claims)
 			next(w, req)
 		} else {
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
 		}
 
