@@ -48,26 +48,26 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 
 		// Comprovar si hi ha una Cookie 'Auth'
-		cookie, err := req.Cookie("Auth")
-		if err != nil {
-			// Si no hi ha Cookie, mirem les capsaleres
-			authorizationHeader := req.Header.Get("authorization")
-			if authorizationHeader == "" {
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
-				return
-			}
-			bearerToken := strings.Split(authorizationHeader, " ")
-			if len(bearerToken) != 2 {
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
-				return
-			}
-			tokenRebut = bearerToken[1]
-
-		} else {
-			tokenRebut = cookie.Value
+		// cookie, err := req.Cookie("Auth")
+		//if err != nil {
+		// Si no hi ha Cookie, mirem les capsaleres
+		authorizationHeader := req.Header.Get("authorization")
+		if authorizationHeader == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+			return
 		}
+		bearerToken := strings.Split(authorizationHeader, " ")
+		if len(bearerToken) != 2 {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+			return
+		}
+		tokenRebut = bearerToken[1]
+
+		// } else {
+		//	tokenRebut = cookie.Value
+		// }
 
 		// token, err := jwt.ParseWithClaims(tokenRebut, &TokenData{}, func(token *jwt.Token) (interface{}, error) {
 		token, error := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
@@ -92,19 +92,18 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func correctCookie(req *http.Request) bool {
-
-	if cookie, err := req.Cookie("Auth"); err == nil {
-		tokenRebut := cookie.Value
-		token, err := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("There was an error")
-			}
-			return clauDeSignat, nil
-		})
-		if err == nil && token.Valid {
-			return true
-		}
-	}
-	return false
-}
+// func correctCookie(req *http.Request) bool {
+// 	if cookie, err := req.Cookie("Auth"); err == nil {
+// 		tokenRebut := cookie.Value
+// 		token, err := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
+// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+// 				return nil, fmt.Errorf("There was an error")
+// 			}
+// 			return clauDeSignat, nil
+// 		})
+// 		if err == nil && token.Valid {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

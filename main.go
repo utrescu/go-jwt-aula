@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"html/template"
 	"net/http"
 	"os"
-	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
@@ -57,7 +55,7 @@ func main() {
 	router.HandleFunc("/login", LoginHandler).Methods("POST")
 
 	// Protegim les URL amb el middleware ValidateToken(*) de jwt.go
-	router.HandleFunc("/login", ToLoginHandler).Methods("GET")
+	// router.HandleFunc("/login", ToLoginHandler).Methods("GET")
 	router.HandleFunc("/help", HelpHandler).Methods("GET")
 	router.HandleFunc("/aula/list", ValidateToken(ListAulesHandler)).Methods("GET")
 	router.HandleFunc("/aula/{num}/status", ValidateToken(ListClasse)).Methods("GET")
@@ -83,18 +81,18 @@ func main() {
 
 }
 
-// ToLoginHandler mostra la pàgina de login a menys que ja tingui la cookie
-// ------------------------------------------------------------------------
-var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+// // ToLoginHandler mostra la pàgina de login a menys que ja tingui la cookie
+// // ------------------------------------------------------------------------
+// var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-	if correctCookie(req) {
-		t, _ := template.ParseFiles("templates/base.html")
-		t.Execute(w, config.Aules)
-		// http.Redirect(w, req, "/base", http.StatusSeeOther)
-	} else {
-		http.ServeFile(w, req, "./views/login.html")
-	}
-})
+// 	if correctCookie(req) {
+// 		t, _ := template.ParseFiles("templates/base.html")
+// 		t.Execute(w, config.Aules)
+// 		// http.Redirect(w, req, "/base", http.StatusSeeOther)
+// 	} else {
+// 		http.ServeFile(w, req, "./views/login.html")
+// 	}
+// })
 
 // HelpHandler mostra la pàgina d'error en format HTML
 // ------------------------------------------------------------------------
@@ -143,18 +141,22 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
+	// Cookie
+	// expireCookie := time.Now().Add(time.Hour * 1)
+	// cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
+	// http.SetCookie(w, &cookie)
+
 	// Generar el token i la resposta
-	expireCookie := time.Now().Add(time.Hour * 1)
-	cookie := http.Cookie{Name: "Auth", Value: tokenString, Expires: expireCookie, HttpOnly: true}
-	http.SetCookie(w, &cookie)
 	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
 })
 
 // Logout es fa servir per desconnectar els clients web
 // ------------------------------------------------------------------------
 func Logout(res http.ResponseWriter, req *http.Request) {
-	deleteCookie := http.Cookie{Name: "Auth", Value: "none", Expires: time.Now()}
-	http.SetCookie(res, &deleteCookie)
+	// deleteCookie := http.Cookie{Name: "Auth", Value: "none", Expires: time.Now()}
+	// http.SetCookie(res, &deleteCookie)
+
+	// Expire Token?
 	return
 }
 
