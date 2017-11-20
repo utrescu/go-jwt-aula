@@ -53,6 +53,8 @@ Es pot anar amb el navegador a [http://localhost:3000](http://localhost:3000) pe
 
 Fa servir un frontend Angular per poder treballar amb el servei
 
+![Angular](README/angular.png)
+
 ### Fitxer de configuració
 
 #### Configuració bàsica
