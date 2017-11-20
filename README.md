@@ -49,9 +49,13 @@ En Go es poden generar executables de qualsevol plataforma. Per exemple podem ge
 
 ### Accés al servei
 
-Es pot anar amb el navegador a [http://localhost:3000](http://localhost:3000) per veure el servei en marxa. Inicialment s'accedeix a un formulari de login que serveix per iniciar-se en el sistema (però la idea no és fer una aplicació web sinó una API REST)
+Es pot anar amb el navegador a [http://localhost:3000](http://localhost:3000) per veure el servei en marxa.
+
+Fa servir un frontend Angular per poder treballar amb el servei
 
 ### Fitxer de configuració
+
+#### Configuració bàsica
 
 El programa carrega les dades de les classes d'un fitxer en format TOML
 
@@ -71,7 +75,11 @@ Per exemple aquesta seria la configuració de dues aules 309 i 310:
       name = "Aula 310"
       port = 22
 
-Aquí detecta els sistemes amb el port 22 obert (que és el que jo necessitava per control·lar les classes) però es pot posar un port diferent per cada classe
+Aquí detecta els sistemes amb el port 22 obert (que és el que jo necessitava per control·lar les classes) però es pot posar un port diferent per cada classe o altres tipus de rangs
+
+#### Base de dades
+
+També fa servir una base de dades SQLite en la que s'hi defineix l'usuari i la contrasenya. El fitxer està en el directori de la configuració
 
 Descripció del servei
 ------------------------
@@ -91,14 +99,11 @@ Un valor important i que s'hauria de mantenir en secret és la clau de xifrat qu
 
     var clauDeSignat = []byte("SiLaLletFosXocolataNoCaldriaColacao")
 
-He preparat una estructura de directoris per desplegar la part web */views/* per l'HTML i */static/* pels recursos.
+He preparat una estructura de directoris per desplegar la part web */views/* per l'HTML.
 
-Faig servir dues formes d'autenticació:
+L'autenticació JWT es fa enviant una capsalera 'Authorization'
 
-* Enviant una capsalera 'Authorization'
-* Fent servir una cookie
-
-> WARNING: Cap dels sistemes és segur si no es fa servir una connexió HTTPS. En el cas de les Cookies s'han de restringir perquè no es puguin llegir des de Javascript
+> WARNING: El sistema no és segur si no es fa servir una connexió HTTPS.
 
 Exemple d'ús amb un Authorization Token
 --------------------------------------------
@@ -109,9 +114,9 @@ En les proves faré servir **httpie**
 
 ### Obtenir el token
 
-Abans de poder fer servir els altres mètodes cal obtenir el token (en aquest moment funciona amb qualsevol usuari i contrasenya). En aquest cas envio 'pere'
+Abans de poder fer servir els altres mètodes cal obtenir el token (en aquest moment funciona amb usuari "dept" i contrasenya "ies2017!"). En aquest cas envio 'pere'
 
-    $ echo '{"username":"pere", "password":"contra"}' | http http://localhost:3000/login
+    $ echo '{"username":"dept", "password":"ies2017!"}' | http http://localhost:3000/login
 
 Amb aquesta comanda es generarà una petició POST:
 
@@ -125,8 +130,8 @@ Amb aquesta comanda es generarà una petició POST:
     User-Agent: HTTPie/0.9.4
 
     {
-        "password": "contra",
-        "username": "pere"
+        "password": "ies2017!",
+        "username": "dept"
     }
 
 I ens donarà la resposta següent:
@@ -135,13 +140,12 @@ I ens donarà la resposta següent:
     Content-Length: 173
     Content-Type: application/json
     Date: Wed, 01 Nov 2017 19:01:38 GMT
-    Set-Cookie: Auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBlcmUiLCJleHAiOjE1MDk1NjY0OTgsImlzcyI6ImxvY2FsaG9zdDozMDAwIn0.FlGUcQMG6U4c7yWIhS3QwDC5ervictvHfThGph7d4s4; Expires=Wed, 01 Nov 2017 20:01:38 GMT; HttpOnly
 
     {
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBlcmUiLCJleHAiOjE1MDk1NjY0OTgsImlzcyI6ImxvY2FsaG9zdDozMDAwIn0.FlGUcQMG6U4c7yWIhS3QwDC5ervictvHfThGph7d4s4"
     }
 
-El valor de *token* és el que necessitem per mantenir l'autenticació (al cap d'una hora caduca). 
+El valor de *token* és el que necessitem per mantenir l'autenticació (al cap d'una hora caduca).
 
 ### Llistar les classes
 
@@ -156,7 +160,7 @@ Que donarà aquesta resposta:
     Content-Type: application/json
     Date: Wed, 01 Nov 2017 19:47:30 GMT
 
-    ["309","310","314"]
+    { "aules": ["309","310","314"] }
 
 El Token és vàlid durant una hora. Per tant si repetim la petició després d'aquest temps el resultat serà que ja no podem identificar-nos:
 
@@ -182,47 +186,28 @@ En cas de que es faci la petició sense token també rebrem un error:
 
 ### Demanar pels PC en marxa d'una classe
 
-També podem demanar per quins són els PC en marxa d'una classe. Per exemple la 309:
+També podem demanar per quins són els PC en marxa d'una classe. Per exemple la 309 podria tenir un resultat com aquest:
 
     $ http http://localhost:3000/aula/309/status Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBlcmUiLCJleHAiOjE1MDk1NzM3MTQsImlzcyI6ImxvY2FsaG9zdDozMDAwIn0.9LoBUzj4NaTHH8J02aWkR4DivJEvQFA2Pq8sHXMUtCk'
 
 Que donarà:
 
     HTTP/1.1 200 OK
-    Content-Length: 59
+    Content-Length: 89
     Content-Type: application/json
     Date: Wed, 01 Nov 2017 21:42:29 GMT
 
     {
         "Aula": "309",
         "EnMarxa": [
-            "i309-01m",
-            "i309-01d",
-            "i309-03e"
+            "192.168.9.22",
+            "192.168.9.25",
+            "192.168.9.26"
         ]
     }
 
-Exemple d'ús amb Cookies
---------------------------------------------
+TODO
+================================
 
-Si es fan servir les Cookies es pot treballar des del navegador. Primer s'accedeix a la pantalla de login:
-
-    http://localhost:3000
-
-![login](README/login.png)
-
-Que retornarà el token (innecessari perquè també està en una cookie)
-
-![login token](README/login2.png)
-
-A partir d'aquest moment es pot navegar per les adreces protegides sense problemes (el token està en la cookie)
-
-![aules](README/aules.png)
-
-![aula309](README/aula309.png)
-
-Es pot tancar la sessió accedint a la URL [http://localhost:3000/logout](http://localhost:3000/logout)
-
-I si tornem a intentar anar a pàgines protegides donarà error:
-
-![Error](README/error.png)
+* Proporcionar alguna forma de crear usuaris
+* Millorar el procediment d'escanneig dels ordinadors
