@@ -54,7 +54,7 @@ func (a *aules) listAules() AulesResult {
 func (a *AulaInfo) cercaMaquines(numAula string) (AulaResult, error) {
 	var resultat AulaResult
 	resultat.Aula = numAula
-	enmarxa, _, err := listIP.Check([]string{a.Rang}, a.Port, 64, "100ms")
+	enmarxa, _, err := listIP.Check([]string{a.Rang}, a.Port, 64, "500ms")
 	resultat.EnMarxa = enmarxa
 	return resultat, err
 }
