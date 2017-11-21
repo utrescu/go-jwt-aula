@@ -45,19 +45,6 @@ func (a *Rutes) inicialitzaRoutes() {
 
 }
 
-// // ToLoginHandler mostra la pàgina de login a menys que ja tingui la cookie
-// // ------------------------------------------------------------------------
-// var ToLoginHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
-// 	if correctCookie(req) {
-// 		t, _ := template.ParseFiles("templates/base.html")
-// 		t.Execute(w, config.Aules)
-// 		// http.Redirect(w, req, "/base", http.StatusSeeOther)
-// 	} else {
-// 		http.ServeFile(w, req, "./views/login.html")
-// 	}
-// })
-
 // HelpHandler mostra la pàgina d'error en format HTML
 // ------------------------------------------------------------------------
 func (a *Rutes) mostraAjuda(w http.ResponseWriter, req *http.Request) {
@@ -70,8 +57,6 @@ func (a *Rutes) mostraAjuda(w http.ResponseWriter, req *http.Request) {
 // - "form-urlencoded" : S'ha de convertir
 // ------------------------------------------------------------------------
 func (a *Rutes) entrar(w http.ResponseWriter, req *http.Request) {
-	// Sempre generem contingut JSON
-	w.Header().Set("Content-Type", "application/json")
 
 	var user User
 	var err error
@@ -93,15 +78,13 @@ func (a *Rutes) entrar(w http.ResponseWriter, req *http.Request) {
 	}
 	// Error or no user ...
 	if err != nil || !user.hasValues() || !user.hasCorrectPassword(db) {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(Exception{Message: "Incorrect User"})
+		respondWithError(w, http.StatusUnauthorized, "Incorrect User")
 		return
 	}
 
 	tokenString, err := GetTokenHandler(user)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(Exception{Message: "Error generating token"})
+		respondWithError(w, http.StatusUnprocessableEntity, "Error generating token")
 		return
 	}
 
@@ -111,16 +94,13 @@ func (a *Rutes) entrar(w http.ResponseWriter, req *http.Request) {
 	// http.SetCookie(w, &cookie)
 
 	// Generar el token i la resposta
-	json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
+	respondWithJSON(w, http.StatusOK, JwtToken{Token: tokenString})
+	// json.NewEncoder(w).Encode(JwtToken{Token: tokenString})
 }
 
 // Logout es fa servir per desconnectar els clients web
 // ------------------------------------------------------------------------
 func (a *Rutes) sortir(w http.ResponseWriter, req *http.Request) {
-	// deleteCookie := http.Cookie{Name: "Auth", Value: "none", Expires: time.Now()}
-	// http.SetCookie(res, &deleteCookie)
-
-	// Expire Token?
 	return
 }
 
@@ -128,8 +108,7 @@ func (a *Rutes) sortir(w http.ResponseWriter, req *http.Request) {
 // en teoria s'eliminarà en producció
 // ------------------------------------------------------------------------
 func (a *Rutes) noImplementat(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(Exception{Message: "Not implemented"})
+	respondWithError(w, http.StatusNotImplemented, "Not implemented")
 }
 
 // llistaAules retorna la llista d'aules
@@ -139,8 +118,9 @@ func (a *Rutes) llistaAules(w http.ResponseWriter, req *http.Request) {
 	var token TokenData
 	mapstructure.Decode(decoded.(jwt.MapClaims), &token)
 
-	payload, _ := json.Marshal(config.listAules())
-	w.Write([]byte(payload))
+	respondWithJSON(w, http.StatusOK, config.listAules())
+	//	payload, _ := json.Marshal(config.listAules())
+	//	w.Write([]byte(payload))
 }
 
 // llistaClasse retorna les característiques d'una classe determinada que
@@ -156,14 +136,13 @@ func (a *Rutes) llistaClasse(w http.ResponseWriter, req *http.Request) {
 
 		aula, err := infoAula.cercaMaquines(numAula)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(Exception{Message: err.Error()})
+			respondWithError(w, http.StatusNotFound, err.Error())
 			return
 		}
-		resposta, _ := json.Marshal(aula)
-		w.Write([]byte(resposta))
+		respondWithJSON(w, http.StatusOK, aula)
+		// resposta, _ := json.Marshal(aula)
+		// w.Write([]byte(resposta))
 	} else {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(Exception{Message: "Inexistent class"})
+		respondWithError(w, http.StatusNotFound, "Inexistent")
 	}
 }

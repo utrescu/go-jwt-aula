@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,6 +9,11 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 )
+
+// JwtToken es fa servir per retornar el token web
+type JwtToken struct {
+	Token string `json:"token"`
+}
 
 // TokenData defineix les dades d'usuari
 type TokenData struct {
@@ -53,14 +57,12 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 		// Si no hi ha Cookie, mirem les capsaleres
 		authorizationHeader := req.Header.Get("authorization")
 		if authorizationHeader == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+			respondWithError(w, http.StatusUnauthorized, "An authorization token is required")
 			return
 		}
 		bearerToken := strings.Split(authorizationHeader, " ")
 		if len(bearerToken) != 2 {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(Exception{Message: "An authorization token is required"})
+			respondWithError(w, http.StatusUnauthorized, "An authorization token is required")
 			return
 		}
 		tokenRebut = bearerToken[1]
@@ -70,40 +72,22 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
 		// }
 
 		// token, err := jwt.ParseWithClaims(tokenRebut, &TokenData{}, func(token *jwt.Token) (interface{}, error) {
-		token, error := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
+		token, err2 := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("There was an error")
 			}
 			return clauDeSignat, nil
 		})
-		if error != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Exception{Message: error.Error()})
+		if err2 != nil {
+			respondWithError(w, http.StatusBadRequest, err2.Error())
 			return
 		}
 		if token.Valid {
 			context.Set(req, "decoded", token.Claims)
 			next(w, req)
 		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
+			respondWithError(w, http.StatusUnauthorized, "Invalid authorization token")
 		}
 
 	})
 }
-
-// func correctCookie(req *http.Request) bool {
-// 	if cookie, err := req.Cookie("Auth"); err == nil {
-// 		tokenRebut := cookie.Value
-// 		token, err := jwt.Parse(tokenRebut, func(token *jwt.Token) (interface{}, error) {
-// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-// 				return nil, fmt.Errorf("There was an error")
-// 			}
-// 			return clauDeSignat, nil
-// 		})
-// 		if err == nil && token.Valid {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }

@@ -2,17 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"net/http"
 )
-
-// JwtToken es fa servir per retornar el token web
-type JwtToken struct {
-	Token string `json:"token"`
-}
-
-// Exception es fa servir per retornar missatges
-type Exception struct {
-	Message string `json:"message"`
-}
 
 // Llista amb les aules del sistema
 var config aules
@@ -38,8 +30,19 @@ func main() {
 	}
 	defer db.Close()
 
-	// Iniciar el router gorilla/mux
+	// Crear i Iniciar el router gorilla/mux
 	servidor := Rutes{}
-
 	servidor.Run(":3000")
+}
+
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"message": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
