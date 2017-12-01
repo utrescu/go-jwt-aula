@@ -22,6 +22,7 @@ type AulesResult struct {
 	Aules []string `json:"aules"`
 }
 
+// AulaInfo : informació d'una aula
 type AulaInfo struct {
 	Rang string
 	Name string
@@ -54,7 +55,7 @@ func (a *aules) listAules() AulesResult {
 func (a *AulaInfo) cercaMaquines(numAula string) (AulaResult, error) {
 	var resultat AulaResult
 	resultat.Aula = numAula
-	enmarxa, _, err := listIP.Check([]string{a.Rang}, a.Port, 64, "500ms")
+	enmarxa, _, err := listIP.Check([]string{a.Rang}, a.Port, 64, "1000ms")
 	resultat.EnMarxa = enmarxa
 	return resultat, err
 }

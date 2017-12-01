@@ -7,41 +7,34 @@ Proves per generar un servei REST que  permeti fer servir JWT (JSON Web tokens) 
 
 Generació del programa
 ------------------------
+Dependències:
 
-Faig servir diferents parts del framework web [Gorila](http://www.gorillatoolkit.org/): El mux, el context i els handlers (semblants als interceptors de Java)
+* Faig servir diferents parts del framework web [Gorila](http://www.gorillatoolkit.org/): El mux, el context i els handlers (semblants als interceptors de Java)
+* la implementació de JWT: [jwt-go](https://github.com/dgrijalva/jwt-go),  
+* Una llibreria per convertir mapes a structs anomenada *mapstructure* (en realitat només em fa el codi més senzill):
+* La configuració està en TOML i per tant fa falta la llibreria (go get github.com/naoina/toml)
+* L'escanneig de la xarxa es fa amb la llibreria `listIP`(go get github.com/utrescu/listIP)
 
-    go get github.com/gorilla/context
-    go get github.com/gorilla/handlers
-    go get github.com/gorilla/mux
+Per tant he configurat el projecte perquè faci servir 'dep' per instal·lar totes les dependències de forma automàtica. En el futur dep s'integrarà al paquet bàsic de Go, però per ara, cal instal·lar-lo:
 
-La implementació de JWT: [jwt-go](https://github.com/dgrijalva/jwt-go)
+    go get -u github.com/golang/dep/cmd/dep
 
-    go get github.com/dgrijalva/jwt-go
+Les dependències es descarregaran automàticament: 
 
-I una llibreria per convertir mapes a structs anomenada *mapstructure* (en realitat només em fa el codi més senzill):
-
-    go get github.com/mitchellh/mapstructure
-
-La configuració està en TOML i per tant fa falta la llibreria
-
-    go get github.com/naoina/toml
-
-L'escanneig de la xarxa es fa amb la llibreria `listIP`:
-
-    go get github.com/utrescu/listIP
+    dep ensure
 
 ### Iniciar o compilar el programa
 
-Després només fa falta iniciar el programa:
+Un cop es tenen les dependències ja es pot iniciar el programa:
 
     go run *.go
 
-També es pot aconseguir un binari nadiu del sistema en que es compili (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
+També es pot aconseguir un binari nadiu del sistema en que s'executi el programa (en Linux l'executable generat agafa el nom del primer fitxer que troba en la llista)
 
     go build *.go
     ./aula
 
-En Go es poden generar executables de qualsevol plataforma. Per exemple podem generar un executable de Windows des de Linux:
+En Go també es poden generar executables de qualsevol plataforma. Per exemple podem generar un executable de Windows des de Linux:
 
     GOOS=windows GOARCH=amd64 go build *.go
 
